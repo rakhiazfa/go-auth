@@ -9,31 +9,34 @@ import (
 	"strings"
 )
 
-func RequiresAuth(userSessionRepository *repositories.UserSessionRepository) gin.HandlerFunc {
+func RequiresAuth(userContext *utils.UserContext, userSessionRepository *repositories.UserSessionRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := c.GetHeader("Authorization")
+		token := c.GetHeader("Authorization")
 
-		if tokenString == "" {
+		if token == "" {
 			utils.CatchError(utils.NewHttpError(http.StatusUnauthorized, "Unauthorized", nil))
 		}
 
-		tokenParts := strings.Split(tokenString, " ")
+		tokenParts := strings.Split(token, " ")
 		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
 			utils.CatchError(utils.NewHttpError(http.StatusUnauthorized, "Unauthorized", nil))
 		}
 
-		claims, err := utils.VerifyAccessToken(tokenParts[1])
+		accessToken := tokenParts[1]
+
+		claims, err := utils.VerifyAccessToken(accessToken)
 		if err != nil {
 			utils.CatchError(utils.NewHttpError(http.StatusUnauthorized, "Unauthorized", err))
 		}
 
-		userSession := userSessionRepository.GetByJwtID(utils.ParseUUID((*claims)["jti"].(string)))
+		userSession := userSessionRepository.GetByJwtIDWithUser(utils.ParseUUID((*claims)["jti"].(string)))
 
 		if userSession.ID == uuid.Nil {
 			utils.CatchError(utils.NewHttpError(http.StatusUnauthorized, "Unauthorized", nil))
 		}
 
-		c.Set("userId", userSession.UserId)
+		userContext.SetAccessToken(accessToken)
+		userContext.SetAuthUser(userSession.User)
 
 		c.Next()
 	}
