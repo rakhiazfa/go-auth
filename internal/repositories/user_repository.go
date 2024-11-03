@@ -10,15 +10,15 @@ import (
 )
 
 type UserRepository struct {
-	DB *gorm.DB
+	db *gorm.DB
 }
 
 func NewUserRepository(db *gorm.DB) *UserRepository {
-	return &UserRepository{DB: db}
+	return &UserRepository{db: db}
 }
 
 func (r *UserRepository) GetAll(paginator *utils.Paginator) (users []entities.User) {
-	err := r.DB.Scopes(scopes.Paginate(&entities.User{}, r.DB, paginator)).Find(&users).Error
+	err := r.db.Scopes(scopes.Paginate(&entities.User{}, r.db, paginator)).Find(&users).Error
 	utils.CatchError(err)
 
 	return
@@ -29,13 +29,13 @@ func (r *UserRepository) Create(tx *gorm.DB, user *entities.User) error {
 }
 
 func (r *UserRepository) GetById(id uuid.UUID) (user entities.User) {
-	r.DB.Model(&entities.User{}).First(&user, "id = ?", id)
+	r.db.Model(&entities.User{}).First(&user, "id = ?", id)
 
 	return
 }
 
 func (r *UserRepository) GetByUsernameUnscoped(username string, exclude ...uuid.UUIDs) (user entities.User) {
-	q := r.DB.Model(&entities.User{}).Unscoped().Where("username = ?", username)
+	q := r.db.Model(&entities.User{}).Unscoped().Where("username = ?", username)
 
 	if len(exclude) > 0 {
 		q = q.Not("id IN ?", exclude[0])
@@ -47,7 +47,7 @@ func (r *UserRepository) GetByUsernameUnscoped(username string, exclude ...uuid.
 }
 
 func (r *UserRepository) GetByEmailUnscoped(email string, exclude ...uuid.UUIDs) (user entities.User) {
-	q := r.DB.Model(&entities.User{}).Unscoped().Where("email = ?", email)
+	q := r.db.Model(&entities.User{}).Unscoped().Where("email = ?", email)
 
 	if len(exclude) > 0 {
 		q = q.Not("id IN ?", exclude[0])
@@ -59,7 +59,7 @@ func (r *UserRepository) GetByEmailUnscoped(email string, exclude ...uuid.UUIDs)
 }
 
 func (r *UserRepository) GetByUsernameOrEmail(usernameOrEmail string) (user entities.User) {
-	r.DB.Model(&entities.User{}).Preload("Roles").First(&user, "username = ? OR email = ?", usernameOrEmail, usernameOrEmail)
+	r.db.Model(&entities.User{}).Preload("Roles").First(&user, "username = ? OR email = ?", usernameOrEmail, usernameOrEmail)
 
 	return
 }

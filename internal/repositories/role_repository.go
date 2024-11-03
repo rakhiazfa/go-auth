@@ -10,7 +10,7 @@ import (
 )
 
 type RoleRepository struct {
-	DB *gorm.DB
+	db *gorm.DB
 }
 
 func NewRoleRepository(db *gorm.DB) *RoleRepository {
@@ -18,7 +18,7 @@ func NewRoleRepository(db *gorm.DB) *RoleRepository {
 }
 
 func (r *RoleRepository) GetAll(paginator *utils.Paginator) (roles []entities.Role) {
-	err := r.DB.Scopes(scopes.Paginate(&entities.Role{}, r.DB, paginator)).Find(&roles).Error
+	err := r.db.Scopes(scopes.Paginate(&entities.Role{}, r.db, paginator)).Find(&roles).Error
 	utils.CatchError(err)
 
 	return
@@ -29,13 +29,13 @@ func (r *RoleRepository) Create(tx *gorm.DB, role *entities.Role) error {
 }
 
 func (r *RoleRepository) GetById(id uuid.UUID) (role entities.Role) {
-	r.DB.Model(&entities.Role{}).First(&role, "id = ?", id)
+	r.db.Model(&entities.Role{}).First(&role, "id = ?", id)
 
 	return
 }
 
 func (r *RoleRepository) GetByNameUnscoped(name string, exclude ...uuid.UUIDs) (role entities.Role) {
-	q := r.DB.Model(&entities.Role{}).Unscoped().Where("name = ?", name)
+	q := r.db.Model(&entities.Role{}).Unscoped().Where("name = ?", name)
 
 	if len(exclude) > 0 {
 		q = q.Not("id IN ?", exclude[0])
@@ -47,7 +47,7 @@ func (r *RoleRepository) GetByNameUnscoped(name string, exclude ...uuid.UUIDs) (
 }
 
 func (r *RoleRepository) GetByName(name string) (role entities.Role) {
-	r.DB.Model(&entities.Role{}).First(&role, "name = ?", name)
+	r.db.Model(&entities.Role{}).First(&role, "name = ?", name)
 
 	return
 }

@@ -9,7 +9,7 @@ import (
 )
 
 type UserSessionRepository struct {
-	DB *gorm.DB
+	db *gorm.DB
 }
 
 func NewUserSessionRepository(db *gorm.DB) *UserSessionRepository {
@@ -21,7 +21,7 @@ func (r *UserSessionRepository) Create(tx *gorm.DB, userSession *entities.UserSe
 }
 
 func (r *UserSessionRepository) GetByJwtID(jwtId uuid.UUID) (userSession entities.UserSession) {
-	r.DB.Model(&entities.UserSession{}).Select(
+	r.db.Model(&entities.UserSession{}).Select(
 		"id", "user_id", "jti", "revoked",
 	).First(&userSession, "revoked IS NOT TRUE AND jti = ?", jwtId)
 
@@ -33,7 +33,7 @@ func (r *UserSessionRepository) Revoke(tx *gorm.DB, userSession *entities.UserSe
 }
 
 func (r *UserSessionRepository) Delete(tx *gorm.DB, id uuid.UUID) error {
-	result := r.DB.Delete(&entities.UserSession{}, id)
+	result := tx.Delete(&entities.UserSession{}, id)
 
 	if result.Error != nil {
 		return result.Error

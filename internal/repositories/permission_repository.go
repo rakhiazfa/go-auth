@@ -9,7 +9,7 @@ import (
 )
 
 type PermissionRepository struct {
-	DB *gorm.DB
+	db *gorm.DB
 }
 
 func NewPermissionRepository(db *gorm.DB) *PermissionRepository {
@@ -17,14 +17,14 @@ func NewPermissionRepository(db *gorm.DB) *PermissionRepository {
 }
 
 func (r *PermissionRepository) GetAll(paginator *utils.Paginator) (permissions []entities.Permission) {
-	err := r.DB.Scopes(scopes.Paginate(&entities.Permission{}, r.DB, paginator)).Find(&permissions).Error
+	err := r.db.Scopes(scopes.Paginate(&entities.Permission{}, r.db, paginator)).Find(&permissions).Error
 	utils.CatchError(err)
 
 	return
 }
 
 func (r *PermissionRepository) GetById(id uuid.UUID) (permission entities.Permission) {
-	r.DB.Model(&entities.Permission{}).First(&permission, "id = ?", id)
+	r.db.Model(&entities.Permission{}).First(&permission, "id = ?", id)
 
 	return
 }

@@ -14,23 +14,25 @@ import (
 )
 
 type AuthService struct {
+	db                    *gorm.DB
 	userRepository        *repositories.UserRepository
 	userSessionRepository *repositories.UserSessionRepository
 	roleRepository        *repositories.RoleRepository
 }
 
 func NewAuthService(
+	db *gorm.DB,
 	userRepository *repositories.UserRepository,
 	userSessionRepository *repositories.UserSessionRepository,
 	roleRepository *repositories.RoleRepository,
 ) *AuthService {
-	return &AuthService{userRepository, userSessionRepository, roleRepository}
+	return &AuthService{db, userRepository, userSessionRepository, roleRepository}
 }
 
 func (s *AuthService) SignUp(req requests.SignUpReq) entities.User {
 	var user entities.User
 
-	err := s.userRepository.DB.Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		err := copier.Copy(&user, &req)
 		if err != nil {
 			return err
@@ -59,7 +61,7 @@ func (s *AuthService) SignUp(req requests.SignUpReq) entities.User {
 }
 
 func (s *AuthService) SignIn(req requests.SignInReq) (refreshToken string, accessToken string, user entities.User) {
-	err := s.userSessionRepository.DB.Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		user = s.userRepository.GetByUsernameOrEmail(req.Username)
 
 		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); user.ID == uuid.Nil || err != nil {
@@ -91,7 +93,7 @@ func (s *AuthService) SignIn(req requests.SignInReq) (refreshToken string, acces
 }
 
 func (s *AuthService) SignOut(req requests.SignOutReq) {
-	err := s.userSessionRepository.DB.Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		claims, err := utils.VerifyRefreshToken(req.RefreshToken)
 		if err != nil {
 			return utils.NewHttpError(http.StatusUnauthorized, "Unauthorized", err)
@@ -111,7 +113,7 @@ func (s *AuthService) SignOut(req requests.SignOutReq) {
 }
 
 func (s *AuthService) RefreshToken(req requests.RefreshTokenReq) (refreshToken string, accessToken string) {
-	err := s.userSessionRepository.DB.Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		claims, err := utils.VerifyRefreshToken(req.RefreshToken)
 		if err != nil {
 			return utils.NewHttpError(http.StatusUnauthorized, "Unauthorized", err)

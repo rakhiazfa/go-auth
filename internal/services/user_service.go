@@ -12,11 +12,12 @@ import (
 )
 
 type UserService struct {
+	db             *gorm.DB
 	userRepository *repositories.UserRepository
 }
 
-func NewUserService(userRepository *repositories.UserRepository) *UserService {
-	return &UserService{userRepository}
+func NewUserService(db *gorm.DB, userRepository *repositories.UserRepository) *UserService {
+	return &UserService{db, userRepository}
 }
 
 func (s *UserService) GetAll(paginator *utils.Paginator) []entities.User {
@@ -26,7 +27,7 @@ func (s *UserService) GetAll(paginator *utils.Paginator) []entities.User {
 func (s *UserService) Create(req requests.CreateUserReq) entities.User {
 	var user entities.User
 
-	err := s.userRepository.DB.Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		err := copier.Copy(&user, &req)
 		if err != nil {
 			return err
@@ -59,7 +60,7 @@ func (s *UserService) GetById(id uuid.UUID) entities.User {
 func (s *UserService) Update(req requests.UpdateUserReq, id uuid.UUID) entities.User {
 	var user entities.User
 
-	err := s.userRepository.DB.Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		if s.userRepository.GetByUsernameUnscoped(req.Username, uuid.UUIDs{id}).ID != uuid.Nil {
 			return utils.NewHttpError(http.StatusConflict, "Username already exists", nil)
 		}
@@ -82,14 +83,14 @@ func (s *UserService) Update(req requests.UpdateUserReq, id uuid.UUID) entities.
 }
 
 func (s *UserService) Delete(id uuid.UUID) {
-	err := s.userRepository.DB.Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		return s.userRepository.Delete(tx, id)
 	})
 	utils.CatchError(err)
 }
 
 func (s *UserService) Restore(id uuid.UUID) {
-	err := s.userRepository.DB.Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		return s.userRepository.Restore(tx, id)
 	})
 	utils.CatchError(err)

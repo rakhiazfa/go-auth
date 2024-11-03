@@ -8,9 +8,6 @@ vendor/
 .vscode/
 .idea/
 
-# Wire
-wire/wire_gen.go
-
 # Cache, test results, and profiling
 *.out
 *.prof

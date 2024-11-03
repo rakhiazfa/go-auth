@@ -12,11 +12,12 @@ import (
 )
 
 type RoleService struct {
+	db             *gorm.DB
 	roleRepository *repositories.RoleRepository
 }
 
-func NewRoleService(roleRepository *repositories.RoleRepository) *RoleService {
-	return &RoleService{roleRepository}
+func NewRoleService(db *gorm.DB, roleRepository *repositories.RoleRepository) *RoleService {
+	return &RoleService{db, roleRepository}
 }
 
 func (s *RoleService) GetAll(paginator *utils.Paginator) []entities.Role {
@@ -26,7 +27,7 @@ func (s *RoleService) GetAll(paginator *utils.Paginator) []entities.Role {
 func (s *RoleService) Create(req requests.CreateRoleReq) entities.Role {
 	var role entities.Role
 
-	err := s.roleRepository.DB.Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		err := copier.Copy(&role, &req)
 		if err != nil {
 			return err
@@ -56,7 +57,7 @@ func (s *RoleService) GetById(id uuid.UUID) entities.Role {
 func (s *RoleService) Update(req requests.UpdateRoleReq, id uuid.UUID) entities.Role {
 	var role entities.Role
 
-	err := s.roleRepository.DB.Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		role = s.GetById(id)
 
 		if s.roleRepository.GetByNameUnscoped(req.Name, uuid.UUIDs{id}).ID != uuid.Nil {
@@ -73,14 +74,14 @@ func (s *RoleService) Update(req requests.UpdateRoleReq, id uuid.UUID) entities.
 }
 
 func (s *RoleService) Delete(id uuid.UUID) {
-	err := s.roleRepository.DB.Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		return s.roleRepository.Delete(tx, id)
 	})
 	utils.CatchError(err)
 }
 
 func (s *RoleService) Restore(id uuid.UUID) {
-	err := s.roleRepository.DB.Transaction(func(tx *gorm.DB) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
 		return s.roleRepository.Restore(tx, id)
 	})
 	utils.CatchError(err)
