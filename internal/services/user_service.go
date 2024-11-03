@@ -70,7 +70,6 @@ func (s *UserService) Update(req requests.UpdateUserReq, id uuid.UUID) entities.
 
 		user = s.GetById(id)
 
-		user.Avatar = req.Avatar
 		user.Name = req.Name
 		user.Username = req.Username
 		user.Email = req.Email

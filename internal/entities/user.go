@@ -7,13 +7,13 @@ import (
 
 type User struct {
 	BaseEntityWithSoftDelete
-	Avatar   *string       `gorm:"type:varchar(255)"`
-	Name     string        `gorm:"type:varchar(255)"`
-	Username string        `gorm:"type:varchar(255);unique"`
-	Email    string        `gorm:"type:varchar(255);unique"`
-	Password string        `gorm:"type:varchar(255)"`
-	Roles    []Role        `gorm:"many2many:user_roles"`
-	Sessions []UserSession `gorm:"foreignKey:UserId;references:ID"`
+	ProfilePicture *string       `gorm:"type:varchar(255)"`
+	Name           string        `gorm:"type:varchar(255)"`
+	Username       string        `gorm:"type:varchar(255);unique"`
+	Email          string        `gorm:"type:varchar(255);unique"`
+	Password       string        `gorm:"type:varchar(255)"`
+	Roles          []Role        `gorm:"many2many:user_roles"`
+	Sessions       []UserSession `gorm:"foreignKey:UserId;references:ID"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
