@@ -21,6 +21,7 @@ import (
 
 func SetupProviders() *gin.Engine {
 	db := database.NewPostgresConnection()
+	userContext := utils.NewUserContext(db)
 	userSessionRepository := repositories.NewUserSessionRepository(db)
 	permissionRepository := repositories.NewPermissionRepository(db)
 	permissionService := services.NewPermissionService(permissionRepository)
@@ -32,11 +33,12 @@ func SetupProviders() *gin.Engine {
 	userRepository := repositories.NewUserRepository(db)
 	userService := services.NewUserService(db, userRepository)
 	userHandler := handlers.NewUserHandler(validator, userService)
-	userContext := utils.NewUserContext(db)
-	accountHandler := handlers.NewAccountHandler(userContext)
+	fileService := services.NewFileService(userContext)
+	accountService := services.NewAccountService(db, userContext, fileService, userRepository)
+	accountHandler := handlers.NewAccountHandler(userContext, accountService, validator)
 	authService := services.NewAuthService(db, userRepository, userSessionRepository, roleRepository)
 	authHandler := handlers.NewAuthHandler(validator, authService)
-	engine := routes.SetupRoutes(userSessionRepository, permissionHandler, roleHandler, userHandler, accountHandler, authHandler)
+	engine := routes.SetupRoutes(userContext, userSessionRepository, permissionHandler, roleHandler, userHandler, accountHandler, authHandler)
 	return engine
 }
 
@@ -48,6 +50,6 @@ var roleModule = wire.NewSet(repositories.NewRoleRepository, services.NewRoleSer
 
 var userModule = wire.NewSet(repositories.NewUserRepository, services.NewUserService, handlers.NewUserHandler)
 
-var accountModule = wire.NewSet(handlers.NewAccountHandler)
+var accountModule = wire.NewSet(services.NewAccountService, handlers.NewAccountHandler)
 
 var authModule = wire.NewSet(repositories.NewUserSessionRepository, services.NewAuthService, handlers.NewAuthHandler)

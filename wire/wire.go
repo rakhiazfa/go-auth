@@ -34,6 +34,7 @@ var userModule = wire.NewSet(
 )
 
 var accountModule = wire.NewSet(
+	services.NewAccountService,
 	handlers.NewAccountHandler,
 )
 
@@ -48,6 +49,7 @@ func SetupProviders() *gin.Engine {
 		database.NewPostgresConnection,
 		utils.NewUserContext,
 		utils.NewValidator,
+		services.NewFileService,
 		permissionModule,
 		roleModule,
 		userModule,
