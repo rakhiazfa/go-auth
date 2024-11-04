@@ -1,13 +1,14 @@
 package entities
 
 import (
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type User struct {
 	BaseEntityWithSoftDelete
-	ProfilePicture *string       `gorm:"type:varchar(255)"`
+	ProfilePicture *uuid.UUID    `gorm:"type:varchar(255)"`
 	Name           string        `gorm:"type:varchar(255)"`
 	Username       string        `gorm:"type:varchar(255);unique"`
 	Email          string        `gorm:"type:varchar(255);unique"`
