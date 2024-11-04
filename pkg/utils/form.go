@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"io"
 	"mime/multipart"
 	"reflect"
@@ -13,14 +14,18 @@ func CreateFormFromStruct(w io.Writer, payload interface{}) (*multipart.Writer, 
 
 	for i := 0; i < v.NumField(); i++ {
 		tag := v.Type().Field(i).Tag.Get("form")
-		value := v.Field(i).Interface()
+		value := v.Field(i)
 
-		if fileHeader, ok := value.(*multipart.FileHeader); ok {
+		if !value.IsValid() || (value.Kind() == reflect.Ptr && value.IsNil()) {
+			continue
+		}
+
+		if fileHeader, ok := value.Interface().(*multipart.FileHeader); ok {
 			if err := writeFileHeader(writer, tag, fileHeader); err != nil {
 				return nil, err
 			}
 		} else {
-			if err := writer.WriteField(tag, value.(string)); err != nil {
+			if err := writeUnknownValue(writer, tag, value.Interface()); err != nil {
 				return nil, err
 			}
 		}
@@ -55,4 +60,36 @@ func writeFileHeader(writer *multipart.Writer, tag string, fileHeader *multipart
 	}
 
 	return err
+}
+
+func writeUnknownValue(writer *multipart.Writer, tag string, value interface{}) error {
+	switch v := value.(type) {
+	case string:
+		if err := writer.WriteField(tag, v); err != nil {
+			return err
+		}
+	case int, int8, int16, int32, int64:
+		if err := writer.WriteField(tag, fmt.Sprintf("%d", v)); err != nil {
+			return err
+		}
+	case float32, float64:
+		if err := writer.WriteField(tag, fmt.Sprintf("%f", v)); err != nil {
+			return err
+		}
+	case bool:
+		if err := writer.WriteField(tag, fmt.Sprintf("%d", btoi(v))); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("unsupported type: %T", v)
+	}
+
+	return nil
+}
+
+func btoi(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }

@@ -1,13 +1,16 @@
 package responses
 
+import "github.com/google/uuid"
+
 type FileAPIRes struct {
-	File FileRes `json:"file"`
+	Message string  `json:"message"`
+	File    FileRes `json:"file"`
 }
 
 type FileRes struct {
-	ID       string `json:"id"`
-	FileName string `json:"fileName"`
-	FileType string `json:"fileType"`
-	FileSize int64  `json:"fileSize"`
-	MimeType string `json:"mimeType"`
+	ID       uuid.UUID `json:"id"`
+	FileName string    `json:"fileName"`
+	FileType string    `json:"fileType"`
+	FileSize int64     `json:"fileSize"`
+	MimeType string    `json:"mimeType"`
 }

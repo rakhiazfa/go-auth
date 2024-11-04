@@ -25,6 +25,18 @@ func NewAccountService(
 
 func (s *AccountService) SetProfilePicture(accessToken string, user entities.User, req requests.SetProfilePictureReq) {
 	err := s.db.Transaction(func(tx *gorm.DB) error {
+		if user.ProfilePicture != nil {
+			_, err := s.fileService.UpdateFile(*user.ProfilePicture, requests.UpdateFileReq{
+				AccessToken: accessToken,
+				File:        req.ProfilePicture,
+			})
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}
+
 		file, err := s.fileService.UploadFile(requests.UploadFileReq{
 			AccessToken: accessToken,
 			ServiceKey:  viper.GetString("application.key"),
@@ -37,7 +49,6 @@ func (s *AccountService) SetProfilePicture(accessToken string, user entities.Use
 		}
 
 		user.ProfilePicture = &file.ID
-
 		err = s.userRepository.Update(tx, &user)
 
 		return err
