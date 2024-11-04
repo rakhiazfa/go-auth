@@ -1,40 +1,27 @@
 package utils
 
 import (
+	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/rakhiazfa/vust-identity-service/internal/entities"
 	"gorm.io/gorm"
 )
 
 type UserContext struct {
-	db          *gorm.DB
-	accessToken *string
-	authUser    *entities.User
+	db *gorm.DB
 }
 
 func NewUserContext(db *gorm.DB) *UserContext {
-	return &UserContext{db, nil, nil}
+	return &UserContext{db}
 }
 
-func (uc *UserContext) GetAccessToken() string {
-	if uc.accessToken != nil {
-		return *uc.accessToken
+func (uc *UserContext) GetAuthUser(c *gin.Context) (user entities.User) {
+	userId, exists := c.Get("userId")
+	if !exists {
+		CatchError(fmt.Errorf("failed to get user from request context"))
 	}
 
-	return ""
-}
+	uc.db.Model(&entities.User{}).Preload("Roles").First(&user, "id = ?", userId)
 
-func (uc *UserContext) SetAccessToken(accessToken string) {
-	uc.accessToken = &accessToken
-}
-
-func (uc *UserContext) GetAuthUser() entities.User {
-	if uc.authUser != nil {
-		return *uc.authUser
-	}
-
-	return entities.User{}
-}
-
-func (uc *UserContext) SetAuthUser(user *entities.User) {
-	uc.authUser = user
+	return user
 }

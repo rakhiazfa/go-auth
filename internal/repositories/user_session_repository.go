@@ -28,14 +28,6 @@ func (r *UserSessionRepository) GetByJwtID(jwtId uuid.UUID) (userSession entitie
 	return
 }
 
-func (r *UserSessionRepository) GetByJwtIDWithUser(jwtId uuid.UUID) (userSession entities.UserSession) {
-	r.db.Model(&entities.UserSession{}).Select(
-		"id", "user_id", "jti", "revoked",
-	).Preload("User").First(&userSession, "revoked IS NOT TRUE AND jti = ?", jwtId)
-
-	return
-}
-
 func (r *UserSessionRepository) Revoke(tx *gorm.DB, userSession *entities.UserSession) error {
 	return tx.Model(userSession).Update("revoked", true).Error
 }

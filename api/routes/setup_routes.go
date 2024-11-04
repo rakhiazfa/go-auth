@@ -5,13 +5,11 @@ import (
 	"github.com/rakhiazfa/vust-identity-service/api/handlers"
 	"github.com/rakhiazfa/vust-identity-service/api/middlewares"
 	"github.com/rakhiazfa/vust-identity-service/internal/repositories"
-	"github.com/rakhiazfa/vust-identity-service/pkg/utils"
 	"github.com/spf13/viper"
 	"net/http"
 )
 
 func SetupRoutes(
-	userContext *utils.UserContext,
 	userSessionRepository *repositories.UserSessionRepository,
 	permissionHandler *handlers.PermissionHandler,
 	roleHandler *handlers.RoleHandler,
@@ -26,7 +24,7 @@ func SetupRoutes(
 	publicApi := r.Group("/api")
 	protectedApi := r.Group("/api")
 
-	protectedApi.Use(middlewares.RequiresAuth(userContext, userSessionRepository))
+	protectedApi.Use(middlewares.RequiresAuth(userSessionRepository))
 
 	publicApi.GET("", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
