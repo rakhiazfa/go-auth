@@ -25,3 +25,12 @@ func (uc *UserContext) GetAuthUser(c *gin.Context) (user entities.User) {
 
 	return user
 }
+
+func (uc *UserContext) GetAccessToken(c *gin.Context) string {
+	accessToken, exists := c.Get("accessToken")
+	if !exists {
+		CatchError(fmt.Errorf("failed to get access token from request context"))
+	}
+
+	return accessToken.(string)
+}

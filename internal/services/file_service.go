@@ -13,14 +13,13 @@ import (
 )
 
 type FileService struct {
-	userContext *utils.UserContext
-	serviceUrl  string
+	serviceUrl string
 }
 
-func NewFileService(userContext *utils.UserContext) *FileService {
+func NewFileService() *FileService {
 	serviceUrl := viper.GetString("services.file_service")
 
-	return &FileService{userContext, serviceUrl}
+	return &FileService{serviceUrl}
 }
 
 func (s *FileService) UploadFile(payload requests.UploadFileReq) (*responses.FileRes, error) {
@@ -37,7 +36,7 @@ func (s *FileService) UploadFile(payload requests.UploadFileReq) (*responses.Fil
 	}
 
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.Header.Set("Authorization", "Bearer "+s.userContext.GetAccessToken())
+	req.Header.Set("Authorization", "Bearer "+payload.AccessToken)
 
 	client := &http.Client{}
 	res, err := client.Do(req)

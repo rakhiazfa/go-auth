@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/rakhiazfa/vust-identity-service/api/dto/requests"
+	"github.com/rakhiazfa/vust-identity-service/internal/entities"
 	"github.com/rakhiazfa/vust-identity-service/internal/repositories"
 	"github.com/rakhiazfa/vust-identity-service/pkg/utils"
 	"github.com/spf13/viper"
@@ -10,29 +11,26 @@ import (
 
 type AccountService struct {
 	db             *gorm.DB
-	userContext    *utils.UserContext
 	fileService    *FileService
 	userRepository *repositories.UserRepository
 }
 
 func NewAccountService(
 	db *gorm.DB,
-	userContext *utils.UserContext,
 	fileService *FileService,
 	userRepository *repositories.UserRepository,
 ) *AccountService {
-	return &AccountService{db, userContext, fileService, userRepository}
+	return &AccountService{db, fileService, userRepository}
 }
 
-func (s *AccountService) SetProfilePicture(req requests.SetProfilePictureReq) {
+func (s *AccountService) SetProfilePicture(accessToken string, user entities.User, req requests.SetProfilePictureReq) {
 	err := s.db.Transaction(func(tx *gorm.DB) error {
-		user := s.userContext.GetAuthUser()
-
 		file, err := s.fileService.UploadFile(requests.UploadFileReq{
-			ServiceKey: viper.GetString("application.key"),
-			BucketName: "vust",
-			Directory:  "/users/" + user.ID.String() + "/profile-pictures",
-			File:       req.ProfilePicture,
+			AccessToken: accessToken,
+			ServiceKey:  viper.GetString("application.key"),
+			BucketName:  "vust",
+			Directory:   "/users/" + user.ID.String() + "/profile-pictures",
+			File:        req.ProfilePicture,
 		})
 		if err != nil {
 			return err

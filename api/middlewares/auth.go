@@ -22,7 +22,9 @@ func RequiresAuth(userSessionRepository *repositories.UserSessionRepository) gin
 			utils.CatchError(utils.NewHttpError(http.StatusUnauthorized, "Unauthorized", nil))
 		}
 
-		claims, err := utils.VerifyAccessToken(tokenParts[1])
+		accessToken := tokenParts[1]
+
+		claims, err := utils.VerifyAccessToken(accessToken)
 		if err != nil {
 			utils.CatchError(utils.NewHttpError(http.StatusUnauthorized, "Unauthorized", err))
 		}
@@ -33,6 +35,7 @@ func RequiresAuth(userSessionRepository *repositories.UserSessionRepository) gin
 			utils.CatchError(utils.NewHttpError(http.StatusUnauthorized, "Unauthorized", nil))
 		}
 
+		c.Set("accessToken", accessToken)
 		c.Set("userId", userSession.UserId)
 
 		c.Next()
