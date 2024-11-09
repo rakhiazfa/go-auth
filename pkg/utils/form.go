@@ -7,7 +7,7 @@ import (
 	"reflect"
 )
 
-func CreateFormFromStruct(w io.Writer, payload interface{}) (*multipart.Writer, error) {
+func StructToForm(w io.Writer, payload interface{}) (*multipart.Writer, error) {
 	writer := multipart.NewWriter(w)
 
 	v := reflect.ValueOf(payload)
