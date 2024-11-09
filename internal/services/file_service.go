@@ -46,7 +46,7 @@ func (s *FileService) UploadFile(payload requests.UploadFileReq) (*responses.Fil
 		return nil, fmt.Errorf("upload failed with status: %s", res.Status())
 	}
 
-	return &fileAPIRes.File, nil
+	return &fileAPIRes.File, err
 }
 
 func (s *FileService) UpdateFile(id uuid.UUID, payload requests.UpdateFileReq) (*responses.FileRes, error) {
