@@ -1,1 +1,1 @@
-# Learn Go
+# Go Auth
